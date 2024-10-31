@@ -1,3 +1,5 @@
+import pandas as pd
+import numpy as np
 import random
 import math
 
@@ -13,18 +15,51 @@ DEBUG = False
 #     return sum(abs(x - y) for x, y in zip(a, b))
 
 # DO NOT CHANGE THE FOLLOWING LINE
+
+
 def kmeans(data, k, columns, centers=None, n=None, eps=None):
-# DO NOT CHANGE THE PRECEDING LINE
-    # This function has to return a list of k cluster centers (lists of floats of the same length as columns)
-    pass
+    # Convert data to a numpy array based on the selected columns
+    data_points = data[columns].values
+
+    # Initialize cluster centers
+    if centers is None:
+        # Randomly initialize centers from the data points
+        random_indices = np.random.choice(
+            len(data_points), size=k, replace=False)
+        centers = data_points[random_indices]
+    else:
+        # Convert provided centers to numpy array in case it's a DataFrame subset
+        centers = np.array(centers)
+
+    # Loop control variables
+    for i in range(n if n is not None else float('inf')):
+        # Assign each point to the nearest cluster center
+        labels = []
+        for point in data_points:
+            distances = [np.linalg.norm(point - center) for center in centers]
+            labels.append(np.argmin(distances))
+        labels = np.array(labels)
+
+        # Update cluster centers
+        new_centers = np.array(
+            [data_points[labels == j].mean(axis=0) for j in range(k)])
+
+        # Check for convergence
+        center_shifts = np.linalg.norm(new_centers - centers, axis=1)
+        if eps is not None and np.all(center_shifts < eps):
+            break
+        centers = new_centers
+
+    return labels, centers
+
 
 # DO NOT CHANGE THE FOLLOWING LINE
 def dbscan(data, columns, eps, min_samples):
-# DO NOT CHANGE THE PRECEDING LINE
+    # DO NOT CHANGE THE PRECEDING LINE
     # This function has to return a list of cluster centers (lists of floats of the same length as columns)
     # This function has to return a list of cluster centers (lists of floats of the same length as columns)
 
-    # Finds all points which are neighbors of a datapoint P 
+    # Finds all points which are neighbors of a datapoint P
     def epsilon_neighbors(data, columns, eps, p):
         print("Finding direct epsilon neighbors for point: ", p)
         # All neighbors of a point p
@@ -93,33 +128,37 @@ def dbscan(data, columns, eps, min_samples):
         # if the number of neighbors of our point is greater than min_samples, it is a core point
         print(f"Number of neighbors for point {i}: {len(i_neighbors)}")
         if len(i_neighbors) >= min_samples:
-            all_epsilon_reachable(data, columns, eps, min_samples, cluster, clustered_points, i, i_neighbors)
+            all_epsilon_reachable(
+                data, columns, eps, min_samples, cluster, clustered_points, i, i_neighbors)
             print(f"Cluster {cluster} completed\n")
             cluster += 1
 
         # Otherwise it is a noisy point
         else:
             clustered_points[i] = -1
-    
+
     return clustered_points
-    
+
 # DO NOT CHANGE THE FOLLOWING LINE
+
+
 def kmedoids(data, k, distance, centers=None, n=None, eps=None):
-# DO NOT CHANGE THE PRECEDING LINE
+    # DO NOT CHANGE THE PRECEDING LINE
     # This function has to return a list of k cluster centroids (data instances!)
 
     # Step 1: Set initial medoids as specified by the user or choose randomly
     if centers is None:
         centers = random.sample(data, k)
     curr_medoids = centers
-    
+
     if DEBUG:
         print("Initial medoids:", curr_medoids)
 
     # Because we will repeat the process until convergence, we need to define some helper functions
     # Helper function to assign clusters as a dictionary (map)
     def assign_clusters(medoids):
-        clusters = {tuple(medoid): [] for medoid in medoids}  # Use medoids as dictionary keys
+        # Use medoids as dictionary keys
+        clusters = {tuple(medoid): [] for medoid in medoids}
         for instance in data:
             # Find the nearest medoid for each instance
             min_dist = float('inf')
@@ -128,15 +167,17 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
                 dist = distance(instance, medoid)
                 if dist < min_dist:
                     min_dist = dist
-                    closest_medoid = tuple(medoid)  # Store medoid as tuple for dictionary key compatibility
+                    # Store medoid as tuple for dictionary key compatibility
+                    closest_medoid = tuple(medoid)
             clusters[closest_medoid].append(instance)
         return clusters
-    
+
     # Helper function to calculate total clustering cost
     def calculate_total_cost(medoids, clusters):
         cost = 0
         for medoid in medoids:
-            for instance in clusters[tuple(medoid)]:  # Use tuple(medoid) as dictionary key
+            # Use tuple(medoid) as dictionary key
+            for instance in clusters[tuple(medoid)]:
                 cost += distance(instance, medoid)
         return cost
 
@@ -180,8 +221,9 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
         # Perform the best swap if it improves the cost
         if best_cost_reduction > (eps or 0):
             if DEBUG:
-                print(f"Swapping medoid {curr_medoids[best_medoid_idx]} with candidate {best_candidate} improves cost from {cost} by {best_cost_reduction}")
-            
+                print(f"Swapping medoid {curr_medoids[best_medoid_idx]} with candidate {
+                      best_candidate} improves cost from {cost} by {best_cost_reduction}")
+
             curr_medoids[best_medoid_idx] = best_candidate
             clusters = assign_clusters(curr_medoids)
             cost = calculate_total_cost(curr_medoids, clusters)
@@ -260,22 +302,3 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
 
 # if __name__ == "__main__":
 #     main()
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-    
-
-
-
