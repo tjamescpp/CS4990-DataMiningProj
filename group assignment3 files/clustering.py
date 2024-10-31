@@ -22,7 +22,86 @@ def kmeans(data, k, columns, centers=None, n=None, eps=None):
 def dbscan(data, columns, eps, min_samples):
 # DO NOT CHANGE THE PRECEDING LINE
     # This function has to return a list of cluster centers (lists of floats of the same length as columns)
-    pass
+    # This function has to return a list of cluster centers (lists of floats of the same length as columns)
+
+    # Finds all points which are neighbors of a datapoint P 
+    def epsilon_neighbors(data, columns, eps, p):
+        print("Finding direct epsilon neighbors for point: ", p)
+        # All neighbors of a point p
+        p_neighbors = []
+
+        # Data for point p
+        data_p = data.loc[p, columns]
+
+        # For each datapoint in data:
+        for i in range(0, len(data)):
+            data_point = data.loc[i, columns]
+
+            # Calculate the euclidean distance between point p and point i
+            distance = np.sqrt(np.sum((data_p - data_point) ** 2))
+
+            # If the distance is within epsilon, it is a neighbor of our point
+            if distance <= eps:
+                p_neighbors.append(i)
+
+        p_neighbors.remove(p)
+        return p_neighbors
+
+    # Finds all points which are epsilon reachable from point i (core point)
+    def all_epsilon_reachable(data, columns, eps, min_samples, cluster, clustered_points, i, i_neighbors):
+        print("Finding all epsilon reachable points from core point: ", i)
+        # Add the core point to the cluster
+        clustered_points[i] = cluster
+
+        # For each point which is epsilon reachable from the core point (i)
+        for p in i_neighbors:
+            print(f"SHOW THE LABELS FOR EACH ITERATION: {clustered_points}")
+            # If the point was marked as noisy, add it to the cluster
+            if clustered_points[p] == -1:
+                clustered_points[p] = cluster
+
+            # If the point already belongs to a cluster, continue to the next point
+            if clustered_points[p] >= 1:
+                continue
+            # If the point was unvisited, add it to the cluster and check if it is a core point
+            else:
+                clustered_points[p] = cluster
+                p_neighbors = epsilon_neighbors(data, columns, eps, p)
+                if len(p_neighbors) >= min_samples:
+                    i_neighbors.extend(p_neighbors)
+    """
+    Use a list to output clusters, where indices are the data point and the values are labels:
+    -1: noisy point
+    0: a point which has been unvisited
+    """
+    clustered_points = [0]*len(data)
+
+    # Counter to create unique cluster IDs
+    cluster = 1
+
+    # traverse through each data point in our data
+    for i in range(len(data)):
+        print("Point: ", i)
+
+        # if the point has already been visited, continue to the next iteration
+        if clustered_points[i] != 0:
+            continue
+
+        # Find the neighbors of point i
+        i_neighbors = epsilon_neighbors(data, columns, eps, i)
+
+        # if the number of neighbors of our point is greater than min_samples, it is a core point
+        print(f"Number of neighbors for point {i}: {len(i_neighbors)}")
+        if len(i_neighbors) >= min_samples:
+            all_epsilon_reachable(data, columns, eps, min_samples, cluster, clustered_points, i, i_neighbors)
+            print(f"Cluster {cluster} completed\n")
+            cluster += 1
+
+        # Otherwise it is a noisy point
+        else:
+            clustered_points[i] = -1
+    
+    return clustered_points
     
 # DO NOT CHANGE THE FOLLOWING LINE
 def kmedoids(data, k, distance, centers=None, n=None, eps=None):
