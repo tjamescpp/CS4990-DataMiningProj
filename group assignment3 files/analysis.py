@@ -4,8 +4,6 @@ import numpy as np
 from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder
-from sklearn.decomposition import PCA
 
 # ---------------------DBSCAN---------------------
 # Load the data
