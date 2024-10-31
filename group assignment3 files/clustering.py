@@ -11,8 +11,8 @@ DEBUG = False
 # def euclidean_distance(a, b):
 #     return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
 
-# def manhattan_distance(a, b):
-#     return sum(abs(x - y) for x, y in zip(a, b))
+def manhattan_distance(a, b):
+    return sum(abs(x - y) for x, y in zip(a, b))
 
 # DO NOT CHANGE THE FOLLOWING LINE
 
@@ -139,9 +139,9 @@ def dbscan(data, columns, eps, min_samples):
 
     return clustered_points
 
+
+
 # DO NOT CHANGE THE FOLLOWING LINE
-
-
 def kmedoids(data, k, distance, centers=None, n=None, eps=None):
     # DO NOT CHANGE THE PRECEDING LINE
     # This function has to return a list of k cluster centroids (data instances!)
@@ -150,15 +150,13 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
     if centers is None:
         centers = random.sample(data, k)
     curr_medoids = centers
-
+    
     if DEBUG:
         print("Initial medoids:", curr_medoids)
 
-    # Because we will repeat the process until convergence, we need to define some helper functions
     # Helper function to assign clusters as a dictionary (map)
     def assign_clusters(medoids):
-        # Use medoids as dictionary keys
-        clusters = {tuple(medoid): [] for medoid in medoids}
+        clusters = {tuple(medoid): [] for medoid in medoids}  # Use medoids as dictionary keys
         for instance in data:
             # Find the nearest medoid for each instance
             min_dist = float('inf')
@@ -167,17 +165,15 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
                 dist = distance(instance, medoid)
                 if dist < min_dist:
                     min_dist = dist
-                    # Store medoid as tuple for dictionary key compatibility
-                    closest_medoid = tuple(medoid)
+                    closest_medoid = tuple(medoid)  # Store medoid as tuple for dictionary key compatibility
             clusters[closest_medoid].append(instance)
         return clusters
-
+    
     # Helper function to calculate total clustering cost
     def calculate_total_cost(medoids, clusters):
         cost = 0
         for medoid in medoids:
-            # Use tuple(medoid) as dictionary key
-            for instance in clusters[tuple(medoid)]:
+            for instance in clusters[tuple(medoid)]:  # Use tuple(medoid) as dictionary key
                 cost += distance(instance, medoid)
         return cost
 
@@ -220,10 +216,6 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
 
         # Perform the best swap if it improves the cost
         if best_cost_reduction > (eps or 0):
-            if DEBUG:
-                print(f"Swapping medoid {curr_medoids[best_medoid_idx]} with candidate {
-                      best_candidate} improves cost from {cost} by {best_cost_reduction}")
-
             curr_medoids[best_medoid_idx] = best_candidate
             clusters = assign_clusters(curr_medoids)
             cost = calculate_total_cost(curr_medoids, clusters)
@@ -239,7 +231,6 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
         print("Final medoids:", curr_medoids)
         print("Final cost:", cost)
         print("Final clusters:", clusters)
-        print("Iterations:", iteration)
 
     return curr_medoids
 
