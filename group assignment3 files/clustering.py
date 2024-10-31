@@ -50,7 +50,7 @@ def kmeans(data, k, columns, centers=None, n=None, eps=None):
             break
         centers = new_centers
 
-    return labels, centers
+    return centers
 
 
 # DO NOT CHANGE THE FOLLOWING LINE
