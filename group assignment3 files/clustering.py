@@ -23,7 +23,7 @@ def kmeans(data, k, columns, centers=None, n=None, eps=None):
     if isinstance(data, pd.DataFrame):
         data_points = data[columns].values
     else:
-        data_points = np.array(data)  # Assume data is a sequence
+        data_points = np.array(data)
 
     # Initialize cluster centers
     if centers is None:
@@ -57,7 +57,7 @@ def kmeans(data, k, columns, centers=None, n=None, eps=None):
                     range(len(data_points)), 1)].flatten()
 
         # Check for convergence
-        center_shifts = np.linalg.norm(new_centers - centers, axis=1)
+        center_shifts = np.sqrt(np.sum((new_centers - centers) ** 2, axis=1))
 
         # Stop if eps is provided and center shifts are less than eps
         if eps is not None and np.all(center_shifts < eps):
