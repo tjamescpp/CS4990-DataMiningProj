@@ -38,7 +38,9 @@ def kmeans(data, k, columns, centers=None, n=None, eps=None):
         # Assign each point to the nearest cluster center
         labels = []
         for point in data_points:
-            distances = [np.linalg.norm(point - center) for center in centers]
+            # Use Euclidean distance
+            distances = [np.sqrt(np.sum((point - center) ** 2))
+                         for center in centers]
             labels.append(np.argmin(distances))
         labels = np.array(labels)
 
