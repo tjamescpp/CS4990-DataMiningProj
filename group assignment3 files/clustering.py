@@ -11,6 +11,7 @@ DEBUG = False
 # def euclidean_distance(a, b):
 #     return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
 
+
 def manhattan_distance(a, b):
     return sum(abs(x - y) for x, y in zip(a, b))
 
@@ -18,39 +19,59 @@ def manhattan_distance(a, b):
 
 
 def kmeans(data, k, columns, centers=None, n=None, eps=None):
-    # Convert data to a numpy array based on the selected columns
-    data_points = data[columns].values
+    # Step 1: Convert the data to a numpy array using specified columns
+    if isinstance(data, pd.DataFrame):
+        data_points = data[columns].values
+    else:
+        data_points = np.array(data)  # Assume data is a sequence
 
-    # Initialize cluster centers
+    # Step 2: Initialize cluster centers
     if centers is None:
-        # Randomly initialize centers from the data points
-        random_indices = np.random.choice(
-            len(data_points), size=k, replace=False)
+        random_indices = random.sample(range(len(data_points)), k)
         centers = data_points[random_indices]
     else:
-        # Convert provided centers to numpy array in case it's a DataFrame subset
         centers = np.array(centers)
 
-    # Loop control variables
-    for i in range(n if n is not None else float('inf')):
-        # Assign each point to the nearest cluster center
+    iteration = 0  # Initialize iteration count
+
+    while True:
+        # Step 3: Assign each point to the nearest cluster center
         labels = []
         for point in data_points:
             distances = [np.linalg.norm(point - center) for center in centers]
             labels.append(np.argmin(distances))
         labels = np.array(labels)
 
-        # Update cluster centers
-        new_centers = np.array(
-            [data_points[labels == j].mean(axis=0) for j in range(k)])
+        # Step 4: Update cluster centers
+        new_centers = np.copy(centers)  # Copy current centers to update
 
-        # Check for convergence
+        for j in range(k):
+            # Check if any points were assigned to cluster j
+            if np.any(labels == j):
+                new_centers[j] = data_points[labels == j].mean(axis=0)
+            else:
+                # Optionally, reinitialize the center randomly if it's empty
+                new_centers[j] = data_points[random.sample(
+                    range(len(data_points)), 1)].flatten()
+
+        # Step 5: Check for convergence
         center_shifts = np.linalg.norm(new_centers - centers, axis=1)
+
+        # Stop if eps is provided and center shifts are less than eps
         if eps is not None and np.all(center_shifts < eps):
             break
+
+        # If n is provided, stop after n iterations
+        if n is not None:
+            iteration += 1
+            if iteration >= n:
+                break
+
         centers = new_centers
 
-    return centers
+    # Format and round cluster centers before returning
+    centers = [list(map(lambda x: round(x, 2), center)) for center in centers]
+    return centers, labels
 
 
 # DO NOT CHANGE THE FOLLOWING LINE
@@ -140,7 +161,6 @@ def dbscan(data, columns, eps, min_samples):
     return clustered_points
 
 
-
 # DO NOT CHANGE THE FOLLOWING LINE
 def kmedoids(data, k, distance, centers=None, n=None, eps=None):
     # DO NOT CHANGE THE PRECEDING LINE
@@ -150,13 +170,14 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
     if centers is None:
         centers = random.sample(data, k)
     curr_medoids = centers
-    
+
     if DEBUG:
         print("Initial medoids:", curr_medoids)
 
     # Helper function to assign clusters as a dictionary (map)
     def assign_clusters(medoids):
-        clusters = {tuple(medoid): [] for medoid in medoids}  # Use medoids as dictionary keys
+        # Use medoids as dictionary keys
+        clusters = {tuple(medoid): [] for medoid in medoids}
         for instance in data:
             # Find the nearest medoid for each instance
             min_dist = float('inf')
@@ -165,15 +186,17 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
                 dist = distance(instance, medoid)
                 if dist < min_dist:
                     min_dist = dist
-                    closest_medoid = tuple(medoid)  # Store medoid as tuple for dictionary key compatibility
+                    # Store medoid as tuple for dictionary key compatibility
+                    closest_medoid = tuple(medoid)
             clusters[closest_medoid].append(instance)
         return clusters
-    
+
     # Helper function to calculate total clustering cost
     def calculate_total_cost(medoids, clusters):
         cost = 0
         for medoid in medoids:
-            for instance in clusters[tuple(medoid)]:  # Use tuple(medoid) as dictionary key
+            # Use tuple(medoid) as dictionary key
+            for instance in clusters[tuple(medoid)]:
                 cost += distance(instance, medoid)
         return cost
 
@@ -234,62 +257,66 @@ def kmedoids(data, k, distance, centers=None, n=None, eps=None):
 
     return curr_medoids
 
-# # Uncomment the following line for custom test cases
-# # TEST CASES
-# def main():
-#     # Test case 1
-#     data1 = [[1, 2], [2, 1], [4, 4], [5, 5]]
+# Uncomment the following line for custom test cases
+# TEST CASES
 
-#     # Test case 2
-#     data2 = [
-#         [2, 6],  # X1
-#         [3, 4],  # X2
-#         [3, 8],  # X3
-#         [4, 7],  # X4
-#         [6, 2],  # X5
-#         [6, 4],  # X6
-#         [7, 3],  # X7
-#         [7, 4],  # X8
-#         [8, 5],  # X9
-#         [7, 6]   # X10
-#     ]
 
-#     # Test case 3
-#     data3 = [
-#     [1, 2],  [2, 1],  [1, 1],   # Cluster 1
-#     [5, 5],  [6, 5],  [5, 6],   # Cluster 2
-#     [9, 8],  [8, 9],  [9, 9]    # Cluster 3
-#     ]
+def main():
+    # Test case 1
+    data1 = [[1, 2], [2, 1], [4, 4], [5, 5]]
 
-#     # Test case 1 with fixed initial medoids
-#     k = 2
-#     kmedoids(data1, k, manhattan_distance, centers=[[1, 2], [4, 4]], n=1)
-#     print("Expected final medoids: [[1, 2], [4, 4]]")
-#     print('-' * 50)
+    # Test case 2
+    data2 = [
+        [2, 6],  # X1
+        [3, 4],  # X2
+        [3, 8],  # X3
+        [4, 7],  # X4
+        [6, 2],  # X5
+        [6, 4],  # X6
+        [7, 3],  # X7
+        [7, 4],  # X8
+        [8, 5],  # X9
+        [7, 6]   # X10
+    ]
 
-#     kmedoids(data1, k, manhattan_distance, centers=[[1, 2], [4, 4]])
-#     print("Expected final medoids: [[1, 2], [4, 4]]")
-#     print('-' * 50)
+    # Test case 3
+    data3 = [
+        [1, 2],  [2, 1],  [1, 1],   # Cluster 1
+        [5, 5],  [6, 5],  [5, 6],   # Cluster 2
+        [9, 8],  [8, 9],  [9, 9]    # Cluster 3
+    ]
 
-#     # Test case 2 with fixed initial medoids
-#     k = 2
-#     kmedoids(data2, k, manhattan_distance, centers=[[3, 4], [6, 4]], n=1)
-#     print("Expected final medoids: [[3, 8], [6, 4]]")
-#     print('-' * 50)
+    # Test case 1 with fixed initial medoids
+    k = 2
+    kmedoids(data1, k, manhattan_distance, centers=[[1, 2], [4, 4]], n=1)
+    print("Expected final medoids: [[1, 2], [4, 4]]")
+    print('-' * 50)
 
-#     kmedoids(data2, k, manhattan_distance, centers=[[3, 4], [6, 4]])
-#     print("Expected final medoids: [[3, 8], [7, 4]]")
-#     print('-' * 50)
+    kmedoids(data1, k, manhattan_distance, centers=[[1, 2], [4, 4]])
+    print("Expected final medoids: [[1, 2], [4, 4]]")
+    print('-' * 50)
 
-#     # Test case 3 with random initial medoids
-#     k = 3
-#     kmedoids(data3, k, manhattan_distance, centers=[[1, 2], [5, 5], [9, 8]], n=1)
-#     print("Expected final medoids: [[1, 1], [5, 5], [9, 8]]")
-#     print('-' * 50)
+    # Test case 2 with fixed initial medoids
+    k = 2
+    kmedoids(data2, k, manhattan_distance, centers=[[3, 4], [6, 4]], n=1)
+    print("Expected final medoids: [[3, 8], [6, 4]]")
+    print('-' * 50)
 
-#     kmedoids(data3, k, manhattan_distance, centers=[[1, 2], [5, 5], [9, 8]])
-#     print("Expected final medoids: [[1, 1], [5, 5], [9, 9]]")
-#     print('-' * 50)
+    kmedoids(data2, k, manhattan_distance, centers=[[3, 4], [6, 4]])
+    print("Expected final medoids: [[3, 8], [7, 4]]")
+    print('-' * 50)
 
-# if __name__ == "__main__":
-#     main()
+    # Test case 3 with random initial medoids
+    k = 3
+    kmedoids(data3, k, manhattan_distance,
+             centers=[[1, 2], [5, 5], [9, 8]], n=1)
+    print("Expected final medoids: [[1, 1], [5, 5], [9, 8]]")
+    print('-' * 50)
+
+    kmedoids(data3, k, manhattan_distance, centers=[[1, 2], [5, 5], [9, 8]])
+    print("Expected final medoids: [[1, 1], [5, 5], [9, 9]]")
+    print('-' * 50)
+
+
+if __name__ == "__main__":
+    main()

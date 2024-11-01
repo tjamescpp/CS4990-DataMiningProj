@@ -1,4 +1,4 @@
-from clustering import dbscan, kmedoids, manhattan_distance
+from clustering import kmeans, dbscan, kmedoids, manhattan_distance
 import pandas as pd
 import numpy as np
 from sklearn.metrics import silhouette_score
@@ -23,7 +23,8 @@ print("Silhouette Score:", score)
 cancer_data['Cluster'] = clusters
 
 plt.figure(figsize=(10, 7))
-sns.scatterplot(x=cancer_data.iloc[:, 0], y=cancer_data.iloc[:, 1], hue='Cluster', palette='viridis', data=cancer_data, legend='full')
+sns.scatterplot(x=cancer_data.iloc[:, 0], y=cancer_data.iloc[:, 1],
+                hue='Cluster', palette='viridis', data=cancer_data, legend='full')
 plt.title("DBSCAN Cluster Visualization")
 plt.xlabel("PCA Component 1")
 plt.ylabel("PCA Component 2")
@@ -61,23 +62,64 @@ optimal_k = k_values[silhouette_scores.index(max(silhouette_scores))]
 print("Optimal number of clusters (k) based on silhouette analysis:", optimal_k)
 
 # Run kmedoids with optimal k
-medoids = kmedoids(column, optimal_k, distance=manhattan_distance, n=100, eps=1e-3)
+medoids = kmedoids(column, optimal_k,
+                   distance=manhattan_distance, n=100, eps=1e-3)
 # Assign clusters based on kmedoids medoids
 clusters_kmedoids = [
-    min(range(optimal_k), key=lambda idx: manhattan_distance(point, medoids[idx]))
+    min(range(optimal_k), key=lambda idx: manhattan_distance(
+        point, medoids[idx]))
     for point in column
 ]
 
 # Calculate silhouette score for final clustering
-final_score_kmedoids = silhouette_score(cancer_data[['PC1', 'PC2']], clusters_kmedoids)
+final_score_kmedoids = silhouette_score(
+    cancer_data[['PC1', 'PC2']], clusters_kmedoids)
 print("Final K-Medoids Silhouette Score with optimal k:", final_score_kmedoids)
 
 # Visualize final kmedoids clusters
 cancer_data['Cluster_KMedoids'] = clusters_kmedoids
 plt.figure(figsize=(10, 7))
-sns.scatterplot(x='PC1', y='PC2', hue='Cluster_KMedoids', palette='viridis', data=cancer_data, legend='full')
+sns.scatterplot(x='PC1', y='PC2', hue='Cluster_KMedoids',
+                palette='viridis', data=cancer_data, legend='full')
 plt.title("K-Medoids Cluster Visualization with Optimal k")
 plt.xlabel("PCA Component 1")
 plt.ylabel("PCA Component 2")
 plt.legend(title="Cluster", loc="upper right")
+plt.show()
+
+# -------------- KMeans ------------------
+
+# Use 400 rows of data for testing
+data = pd.read_csv('cancer_pca_data.csv')
+test_data = data.iloc[:400]
+
+# Specifying the columns to use for clustering
+columns = ['PC1', 'PC2']
+k = 4
+centers, labels = kmeans(test_data, k, columns, eps=0.001)
+
+print("Final Cluster Centers:", centers)
+
+# Calculate silhouette score
+score = silhouette_score(test_data[columns].values, labels)
+print("Silhouette Score:", score)
+
+# Plot the clusters
+plt.figure(figsize=(8, 6))
+for cluster in range(k):
+    # Filter points belonging to the current cluster
+    cluster_points = test_data[columns][labels == cluster]
+    plt.scatter(cluster_points[columns[0]],
+                cluster_points[columns[1]], label=f'Cluster {cluster + 1}')
+
+# Plot cluster centers
+centers = np.array(centers)
+plt.scatter(centers[:, 0], centers[:, 1], c='red',
+            marker='X', s=200, label='Centers')
+
+# Customize plot
+plt.xlabel(columns[0])
+plt.ylabel(columns[1])
+plt.legend()
+plt.title('KMeans Clustering')
 plt.show()
