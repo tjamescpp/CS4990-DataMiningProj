@@ -19,13 +19,13 @@ def manhattan_distance(a, b):
 
 
 def kmeans(data, k, columns, centers=None, n=None, eps=None):
-    # Step 1: Convert the data to a numpy array using specified columns
+    # Convert the data to a numpy array using specified columns
     if isinstance(data, pd.DataFrame):
         data_points = data[columns].values
     else:
         data_points = np.array(data)  # Assume data is a sequence
 
-    # Step 2: Initialize cluster centers
+    # Initialize cluster centers
     if centers is None:
         random_indices = random.sample(range(len(data_points)), k)
         centers = data_points[random_indices]
@@ -35,14 +35,14 @@ def kmeans(data, k, columns, centers=None, n=None, eps=None):
     iteration = 0  # Initialize iteration count
 
     while True:
-        # Step 3: Assign each point to the nearest cluster center
+        # Assign each point to the nearest cluster center
         labels = []
         for point in data_points:
             distances = [np.linalg.norm(point - center) for center in centers]
             labels.append(np.argmin(distances))
         labels = np.array(labels)
 
-        # Step 4: Update cluster centers
+        # Update cluster centers
         new_centers = np.copy(centers)  # Copy current centers to update
 
         for j in range(k):
@@ -54,7 +54,7 @@ def kmeans(data, k, columns, centers=None, n=None, eps=None):
                 new_centers[j] = data_points[random.sample(
                     range(len(data_points)), 1)].flatten()
 
-        # Step 5: Check for convergence
+        # Check for convergence
         center_shifts = np.linalg.norm(new_centers - centers, axis=1)
 
         # Stop if eps is provided and center shifts are less than eps
