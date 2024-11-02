@@ -113,7 +113,6 @@ def dbscan(data, columns, eps, min_samples):
 
         # For each point which is epsilon reachable from the core point (i)
         for p in i_neighbors:
-            print(f"SHOW THE LABELS FOR EACH ITERATION: {clustered_points}")
             # If the point was marked as noisy, add it to the cluster
             if clustered_points[p] == -1:
                 clustered_points[p] = cluster
