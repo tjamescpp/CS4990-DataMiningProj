@@ -4,13 +4,41 @@ import numpy as np
 from sklearn.metrics import silhouette_score
 import matplotlib.pyplot as plt
 import seaborn as sns
+from collections import Counter
+
+def describe_clusters(df, labels):
+    # Create a dictionary to hold the results
+    cluster_frequent_attributes = {}
+
+    # Convert labels to a pandas Series to use it for indexing
+    labels_series = pd.Series(labels)
+
+    # Loop through each unique cluster
+    for cluster in labels_series.unique():
+        # Filter dataframe to include only rows in the current cluster
+        cluster_df = df[labels_series == cluster]
+
+        # Store the most frequent values for each attribute in the cluster
+        cluster_frequent_attributes[cluster] = {}
+        for column in df.columns:
+            # Use Counter to find the most common value in each column
+            most_common_value = Counter(cluster_df[column]).most_common(1)[0][0]
+            cluster_frequent_attributes[cluster][column] = most_common_value
+
+        # Print the results for the current cluster
+        print(f"Cluster {cluster}:")
+        for attribute, value in cluster_frequent_attributes[cluster].items():
+            print(f"  Most frequent {attribute}: {value}")
+
 
 if __name__ == "__main__":
     # ---------------------DBSCAN---------------------
     # Load the data
+    data = pd.read_csv('cancer_data.csv')
     cancer_data = pd.read_csv('cancer_pca_data.csv')
 
     # Run algorithm on first 400 rows
+    data = data.iloc[:400, :]
     cancer_data = cancer_data.iloc[:400, :]
 
     columns = cancer_data.columns.tolist()
@@ -22,6 +50,7 @@ if __name__ == "__main__":
     print("Silhouette Score:", score)
 
     cancer_data['Cluster'] = clusters
+    data['Cluster'] = clusters
 
     plt.figure(figsize=(10, 7))
     sns.scatterplot(x=cancer_data.iloc[:, 0], y=cancer_data.iloc[:, 1],
@@ -31,6 +60,8 @@ if __name__ == "__main__":
     plt.ylabel("PCA Component 2")
     plt.legend(title="Cluster", loc="upper right")
     plt.show()
+
+    describe_clusters(data, clusters)
 
     # ---------------------Kmedoid---------------------
     # Prepare data for kmedoids clustering
