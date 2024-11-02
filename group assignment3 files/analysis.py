@@ -95,12 +95,28 @@ if __name__ == "__main__":
 
 
 def test_kmeans(test_data, columns, k):
-    centers, labels = kmeans(test_data, k, columns, eps=0.001)
+    centers = kmeans(test_data, k, columns, eps=0.001)
 
     print("Final Cluster Centers:", centers)
 
-    # Calculate silhouette score
-    score = silhouette_score(test_data[columns].values, labels)
+    def assign_labels(data, centers, columns):
+        labels = []
+        # Make sure to only use the selected columns for distance calculation
+        selected_data = data[columns].to_numpy()
+
+        for point in selected_data:
+            # Calculate Euclidean distance to each cluster center
+            distances = [np.sqrt(np.sum((point - np.array(center)) ** 2))
+                         for center in centers]
+            # Assign the data point to the nearest center
+            labels.append(np.argmin(distances))
+        return np.array(labels)
+
+    # Get cluster labels based on the nearest center
+    labels = assign_labels(test_data, centers, columns)
+
+    # Calculate the silhouette score using the data and labels
+    score = silhouette_score(test_data, labels)
     print("Silhouette Score:", score)
 
     # Plot the clusters

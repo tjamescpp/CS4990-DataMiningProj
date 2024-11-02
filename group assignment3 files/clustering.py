@@ -73,7 +73,7 @@ def kmeans(data, k, columns, centers=None, n=None, eps=None):
 
     # Format and round cluster centers before returning
     centers = [list(map(lambda x: round(x, 2), center)) for center in centers]
-    return centers, labels
+    return centers
 
 
 # DO NOT CHANGE THE FOLLOWING LINE
