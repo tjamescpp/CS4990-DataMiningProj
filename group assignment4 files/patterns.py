@@ -7,6 +7,39 @@ DEBUG = True
 def apriori(itemsets, threshold):
     # DO NOT CHANGE THE PRECEDING LINE
 
+    # given number of items per set (n), traverse through a series of sets and create new sets of size n
+    # condition to join sets: must have n-2 elements in common
+    # return the newly created sets
+    def find_itemsets(itemsets, n):
+        itemset_list = list(itemsets)
+        new_itemsets = set()
+        for i in range(len(itemset_list)):
+            for j in range(i + 1, len(itemset_list)):
+                if len(set(itemset_list[i]).intersection(set(itemset_list[j]))) == (n - 2):
+                    new_itemsets.add(set((itemset_list[i])).union(set(itemset_list[j])))
+
+        return new_itemsets
+
+
+    # given a series of itemsets and a series of non frequent itemsets, remove all sets which contain a subset of non frequent itemsets
+    def prune(itemsets, non_frequent_itemsets):
+        if len(non_frequent_itemsets) == 0:
+            return itemsets
+        
+        pruned_itemsets = set()
+        
+        for itemset in itemsets:
+            flag = False
+            for non_frequent_itemset in non_frequent_itemsets:
+                if itemset.intersection(non_frequent_itemset) == non_frequent_itemset:
+                    flag = True
+                    break
+            if not flag:
+                pruned_itemsets.add(itemset)
+        
+        return pruned_itemsets
+
+
     # Total number of itemsets
     n = len(itemsets)
 
@@ -15,34 +48,55 @@ def apriori(itemsets, threshold):
 
     # Traverse through the itemsets and create a set containing each individual item
     # Output frequent_items 
-    frequent_items = set()
+    initial_items = set()
     for itemset in itemsets:
         for item in itemset:
-            if item not in frequent_items:
-                frequent_items.add(item)
-
+            initial_items
     # while at least one frequent item reaches the min support
-    while(True):
-        for item in frequent_items:
+    frequent_items = set()
+    for i in range(2, len(itemsets)):
+        for item in initial_items:
             support = 0
             for itemset in itemsets:
-                if item.issubset(itemset):
+                if item in itemset:
                     support += 1
             if (support / n) >= threshold:
-                selected_itemsets.add(item)
-                frequent_items.remove(item)
+                frequent_items.add(item)
+                initial_items.remove(item)
     
-    # after iterating throught items, selected_itemsets contains the items which meet the support value and frequent_items contains the sets which do not
+        # Create new itemsets of size +1
+        frequent_items_temp = find_itemsets(frequent_items, i)
+
+        # if frequent_items_temp is empty, break out of the loop 
+        if len(frequent_items_temp) == 0:
+            break
+
+        # prune the itemsets
+        frequent_items_temp = prune(frequent_items_temp, initial_items)
+
+        # if frequent_items_temp is empty, break out of the loop 
+        if len(frequent_items_temp) == 0:
+            break
+        
+        # set up for the next iteration
+        initial_items = frequent_items_temp
+        frequent_items = frequent_items_temp
     
 
 
-    
-    
+    final_frequent_items = []
+    for i in range(2, len(itemsets)):
+        for item in initial_items:
+            support = 0
+            for itemset in itemsets:
+                if item in itemset:
+                    support += 1
+            final_frequent_items.append(item, (support/n))
 
     
     # Should return a list of pairs, where each pair consists of the frequent itemset and its support 
     # e.g. [(set(items), 0.7), (set(otheritems), 0.74), ...]
-    return []
+    return final_frequent_items
 
     
 # DO NOT CHANGE THE FOLLOWING LINE
