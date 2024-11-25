@@ -1,7 +1,7 @@
 import math
 from itertools import combinations
 
-DEBUG = True
+DEBUG = False
 
 # DO NOT CHANGE THE FOLLOWING LINE
 def apriori(itemsets, threshold):
@@ -181,11 +181,23 @@ def association_rules(itemsets, frequent_itemsets, metric, metric_threshold):
 
         # Helper function to calculate the conviction of a rule
         def calculate_all_confidence(X, Y):
+            # Handle cases where the denominator is 0
+            if calculate_support(X, itemsets) == 0 and calculate_support(X | Y, itemsets) == 0:
+                return 0
             return calculate_support(X | Y, itemsets) / max(calculate_support(X, itemsets), calculate_support(Y, itemsets))
-
+        
         # Helper function to calculate the max confidence of a rule
         def calculate_max_confidence(X, Y):
-            return max(calculate_all_confidence(X, Y), calculate_all_confidence(Y, X))
+            support_X = calculate_support(X, itemsets)
+            support_Y = calculate_support(Y, itemsets)
+            
+            if support_X == 0 and support_Y == 0:
+                return 0
+            
+            # Calculate confidence in both directions and return the maximum
+            conf_A_given_B = calculate_support(X | Y, itemsets) / support_Y if support_Y > 0 else 0
+            conf_B_given_A = calculate_support(X | Y, itemsets) / support_X if support_X > 0 else 0
+            return max(conf_A_given_B, conf_B_given_A)
 
         # Helper function to calculate kulczynski of a rule (average of lift and confidence)
         def calculate_kulczynski(X, Y):
