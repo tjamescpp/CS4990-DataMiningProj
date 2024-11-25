@@ -212,9 +212,9 @@ def association_rules(itemsets, frequent_itemsets, metric, metric_threshold):
                     # Compute the metric
                     if metric == "lift":
                         m_value = calculate_lift(antecedent, consequent)
-                    elif metric == "all_conf":
+                    elif metric == "all":
                         m_value = calculate_all_confidence(antecedent, consequent)
-                    elif metric == "max_conf":
+                    elif metric == "max":
                         m_value = calculate_max_confidence(antecedent, consequent)
                     elif metric == "kulczynski":
                         m_value = calculate_kulczynski(antecedent, consequent)
@@ -250,10 +250,10 @@ if DEBUG:
     rules_lift = association_rules(itemsets, frequent_itemsets, metric="lift", metric_threshold=1.0)
     print("Rules with Lift Metric:", rules_lift)
     # Rules with All Confidence metric
-    rules_all_conf = association_rules(itemsets, frequent_itemsets, metric="all_conf", metric_threshold=0.5)
+    rules_all_conf = association_rules(itemsets, frequent_itemsets, metric="all", metric_threshold=0.5)
     print("Rules with All Confidence Metric:", rules_all_conf)
     # Rules with Max Confidence metric
-    rules_max_conf = association_rules(itemsets, frequent_itemsets, metric="max_conf", metric_threshold=0.7)
+    rules_max_conf = association_rules(itemsets, frequent_itemsets, metric="max", metric_threshold=0.7)
     print("Rules with Max Confidence Metric:", rules_max_conf)
     # Rules with Kulczynski metric
     rules_kulczynski = association_rules(itemsets, frequent_itemsets, metric="kulczynski", metric_threshold=0.6)
