@@ -11,14 +11,22 @@ def apriori(itemsets, threshold):
     # condition to join sets: must have n-2 elements in common
     # return the newly created sets
     def find_itemsets(itemsets, n):
-        itemset_list = list(itemsets)
-        new_itemsets = set()
-        for i in range(len(itemset_list)):
-            for j in range(i + 1, len(itemset_list)):
-                if len(set(itemset_list[i]).intersection(set(itemset_list[j]))) == (n - 2):
-                    new_itemsets.add(set((itemset_list[i])).union(set(itemset_list[j])))
+        new_itemsets = []
+        hashset = set()
 
+        for i in range(len(itemsets)):
+            for j in range(i + 1, len(itemsets)):
+
+                # Check if the sets have (n-2) elements in common
+                if len(itemsets[i].intersection(itemsets[j])) == (n - 2):
+                    # Create the union of the two sets
+                    union_set = itemsets[i].union(itemsets[j])
+                    
+                    if frozenset(union_set) not in hashset:
+                        hashset.add(frozenset(union_set))  
+                        new_itemsets.append(union_set)    
         return new_itemsets
+
 
 
     # given a series of itemsets and a series of non frequent itemsets, remove all sets which contain a subset of non frequent itemsets
@@ -26,7 +34,7 @@ def apriori(itemsets, threshold):
         if len(non_frequent_itemsets) == 0:
             return itemsets
         
-        pruned_itemsets = set()
+        pruned_itemsets = []
         
         for itemset in itemsets:
             flag = False
@@ -35,7 +43,7 @@ def apriori(itemsets, threshold):
                     flag = True
                     break
             if not flag:
-                pruned_itemsets.add(itemset)
+                pruned_itemsets.append(itemset)
         
         return pruned_itemsets
 
@@ -43,27 +51,52 @@ def apriori(itemsets, threshold):
     # Total number of itemsets
     n = len(itemsets)
 
-    # Set containing frequent item sets which have reached the minimum support threshold
-    selected_itemsets = set()
-
     # Traverse through the itemsets and create a set containing each individual item
     # Output frequent_items 
-    initial_items = set()
+    initial_items = []
+    hashset = set()
     for itemset in itemsets:
         for item in itemset:
-            initial_items
+            if item not in hashset:
+                hashset.add(item)
+                singular_set = set()
+                singular_set.add(item)
+                initial_items.append(singular_set)
+
+
+
     # while at least one frequent item reaches the min support
-    frequent_items = set()
+    frequent_items = []
+    non_frequent_items = []
+
+    
     for i in range(2, len(itemsets)):
+        # for each set of our potential frequent sets
+
         for item in initial_items:
             support = 0
+
+
+            # for each itemset in our original data
             for itemset in itemsets:
-                if item in itemset:
+
+                # if the set is in the itemset, increase its support value
+                if item.issubset(itemset):
                     support += 1
+
+            # if the itemset meets the threshold value, add it to the frequent items list. Otherwise add it to the non frequent itemlist for pruning
             if (support / n) >= threshold:
-                frequent_items.add(item)
-                initial_items.remove(item)
-    
+                frequent_items.append(item)
+                
+            else:
+                non_frequent_items.append(item)
+
+        if not frequent_items:
+            break
+
+        # save the current frequent items
+        saved_frequent_items = list(frequent_items)
+
         # Create new itemsets of size +1
         frequent_items_temp = find_itemsets(frequent_items, i)
 
@@ -72,32 +105,48 @@ def apriori(itemsets, threshold):
             break
 
         # prune the itemsets
-        frequent_items_temp = prune(frequent_items_temp, initial_items)
+        frequent_items_temp = prune(frequent_items_temp, non_frequent_items)
+
 
         # if frequent_items_temp is empty, break out of the loop 
         if len(frequent_items_temp) == 0:
             break
         
         # set up for the next iteration
-        initial_items = frequent_items_temp
-        frequent_items = frequent_items_temp
+        initial_items = list(frequent_items_temp)
+        frequent_items = []
     
 
 
     final_frequent_items = []
-    for i in range(2, len(itemsets)):
-        for item in initial_items:
-            support = 0
-            for itemset in itemsets:
-                if item in itemset:
-                    support += 1
-            final_frequent_items.append(item, (support/n))
+    for item in saved_frequent_items:
+        support = 0
+        for itemset in itemsets:
+            if item.issubset(itemset):
+                support += 1
+        final_frequent_items.append((item, round((support/n), 2)))
 
     
     # Should return a list of pairs, where each pair consists of the frequent itemset and its support 
     # e.g. [(set(items), 0.7), (set(otheritems), 0.74), ...]
     return final_frequent_items
 
+"""
+# Test apriori
+transactions = [
+    {"apple", "banana", "cherry"},
+    {"banana", "cherry", "date"},
+    {"apple", "banana"},
+    {"apple", "cherry"},
+    {"banana", "cherry", "date", "apple"},
+    {"apple", "date"},
+]
+
+frequent_items = apriori(transactions, .5)
+
+print("\nApriori Test")
+print (frequent_items)
+"""
     
 # DO NOT CHANGE THE FOLLOWING LINE
 def association_rules(itemsets, frequent_itemsets, metric, metric_threshold):
