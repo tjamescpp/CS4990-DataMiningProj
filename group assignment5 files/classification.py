@@ -169,20 +169,32 @@ class DecisionTree:
         if not self.tree:
             return None
 
+        predicted_labels = []
+
         # To classify using the tree:
+        for instance in x:
+            current_node = self.tree
         # Start with the root as the "current" node
         # As long as the current node is an interior node (type == "split"):
+            while current_node["type"] == "split":
         #    get the value of the attribute the split is performed on 
+                attribute = current_node['split']
         #    select the child corresponding to that value as the new current node 
-        
+                x_attribute = instance[attribute]
+
+                if x_attribute in current_node["children"]:
+                    current_node = current_node["children"][x_attribute]
+
         # NOTE: In some cases, your tree may not have a child for a particular value 
         #       In that case, return the majority value (self.majority) from the training set 
+                else:
+                    current_node = {"type": "class", "class": self.majority}
         
         # IMPORTANT: You have to perform this classification *for each* element in x 
-        
+            predicted_labels.append(current_node["class"])
         # placeholder return value
         # Note that the result is a list of predictions, one for each x-value
-        return [self.majority for _ in x]
+        return predicted_labels
     
     # DO NOT CHANGE THE FOLLOWING LINE
     def to_dict(self):
