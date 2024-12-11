@@ -178,7 +178,7 @@ class DecisionTree:
         # As long as the current node is an interior node (type == "split"):
             while current_node["type"] == "split":
         #    get the value of the attribute the split is performed on 
-                attribute = current_node['split']
+                attribute = current_node['column']
         #    select the child corresponding to that value as the new current node 
                 x_attribute = instance[attribute]
 
