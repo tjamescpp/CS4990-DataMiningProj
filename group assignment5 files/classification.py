@@ -9,40 +9,39 @@ import math
 # Create the decision tree recursively
 def make_node(previous_ys, xs, ys, columns):
     # WARNING: lists are passed by reference in python
-    # If you are planning to remove items, it's better 
+    # If you are planning to remove items, it's better
     # to create a copy first
     columns = columns[:]
 
     # First, check the three termination criteria:
-    
-    # If there are no rows (xs and ys are empty): 
+
+    # If there are no rows (xs and ys are empty):
     #      Return a node that classifies as the majority class of the parent
     if not xs:
         return {"type": "class", "class": majority(previous_ys)}
-    
+
     # If all ys are the same:
-    #      Return a node that classifies as that class 
+    #      Return a node that classifies as that class
     if same(ys):
         return {"type": "class", "class": ys[0]}
-    
+
     # If there are no more columns left:
     #      Return a node that classifies as the majority class of the ys
     if not columns:
         return {"type": "class", "class": majority(ys)}
 
-
     # Otherwise:
-    # Compute the entropy of the current ys 
+    # Compute the entropy of the current ys
     # For each column:
-    #     Perform a split on the values in that column 
+    #     Perform a split on the values in that column
     #     Calculate the entropy of each of the pieces
-    #     Compute the overall entropy as the weighted sum 
+    #     Compute the overall entropy as the weighted sum
     #     The gain of the column is the difference of the entropy before
-    #        the split, and this new overall entropy 
+    #        the split, and this new overall entropy
     # Select the column with the highest gain, then:
-    # Split the data along the column values and recursively call 
-    #    make_node for each piece 
-    # Create a split-node that splits on this column, and has the result 
+    # Split the data along the column values and recursively call
+    #    make_node for each piece
+    # Create a split-node that splits on this column, and has the result
     #    of the recursive calls as children.
 
     current_entropy = entropy(ys)
@@ -61,11 +60,12 @@ def make_node(previous_ys, xs, ys, columns):
             splits[value[column]][1].append(ys[i])
 
         # Calculate the entropy of each of the pieces
-        # Compute the overall entropy as the weighted sum 
+        # Compute the overall entropy as the weighted sum
         total_entropy = 0
         for split in splits.values():
-            total_entropy += len(split[1]) / len(ys) * entropy(split[1])    # Slide's formula for gain split
-            
+            # Slide's formula for gain split
+            total_entropy += len(split[1]) / len(ys) * entropy(split[1])
+
         # The gain of the column is the difference of the entropy before the split, and this new overall entropy
         gain = current_entropy - total_entropy
         if gain > best_gain:
@@ -77,7 +77,7 @@ def make_node(previous_ys, xs, ys, columns):
     # Note: This is a placeholder return value
     if best_column is None:
         return {"type": "class", "class": majority(ys)}
-    
+
     # Split the data along the column values and recursively call make_node for each piece
     new_columns = columns[:]
     new_columns.remove(best_column)
@@ -89,13 +89,13 @@ def make_node(previous_ys, xs, ys, columns):
     return {"type": "split", "column": best_column, "children": children}
 
 
-
-# Determine if all values in a list are the same 
+# Determine if all values in a list are the same
 # Useful for the second basecase above
 def same(values):
-    if not values: return True
+    if not values:
+        return True
     # if there are values:
-    # pick the first, check if all other are the same 
+    # pick the first, check if all other are the same
 
     first = values[0]
     for value in values:
@@ -103,10 +103,10 @@ def same(values):
             return False
     return True
 
-    
-# Determine how often each value shows up 
+
+# Determine how often each value shows up
 # in a list; this is useful for the entropy
-# but also to determine which values is the 
+# but also to determine which values is the
 # most common
 def counts(values):
     count_dict = {}
@@ -115,11 +115,11 @@ def counts(values):
             count_dict[value] = 0
         count_dict[value] += 1
 
-    # placeholder return value 
+    # placeholder return value
     return count_dict
-   
 
-# Return the most common value from a list 
+
+# Return the most common value from a list
 # Useful for base cases 1 and 3 above.
 def majority(values):
     count_dict = counts(values)
@@ -132,40 +132,43 @@ def majority(values):
 
     # placeholder return value
     return max_value
-    
-    
-# Calculate the entropy of a set of values 
-# First count how often each value shows up 
-# When you divide this value by the total number 
-# of elements, you get the probability for that element 
-# The entropy is the negation of the sum of p*log2(p) 
+
+
+# Calculate the entropy of a set of values
+# First count how often each value shows up
+# When you divide this value by the total number
+# of elements, you get the probability for that element
+# The entropy is the negation of the sum of p*log2(p)
 # for all these probabilities.
 def entropy(values):
     total = len(values)
-    if total == 0: return 0
-    count_dict = counts(values)    
-    
+    if total == 0:
+        return 0
+    count_dict = counts(values)
+
     # Formula for entropy based on slides: Entropy = -sum(p*log2(p)) and p = count/total
     # placeholder return value
-    return -sum((count/total)* math.log2(count/total) for count in count_dict.values())
+    return -sum((count/total) * math.log2(count/total) for count in count_dict.values())
 
-# This is the main decision tree class 
+# This is the main decision tree class
 # DO NOT CHANGE THE FOLLOWING LINE
+
+
 class DecisionTree:
-# DO NOT CHANGE THE PRECEDING LINE
+    # DO NOT CHANGE THE PRECEDING LINE
     def __init__(self, tree={}):
         self.tree = tree
-    
-    # DO NOT CHANGE THE FOLLOWING LINE    
+
+    # DO NOT CHANGE THE FOLLOWING LINE
     def fit(self, x, y):
-    # DO NOT CHANGE THE PRECEDING LINE
-    
+        # DO NOT CHANGE THE PRECEDING LINE
+
         self.majority = majority(y)
         self.tree = make_node(y, x, y, list(range(len(x[0]))))
-        
-    # DO NOT CHANGE THE FOLLOWING LINE    
+
+    # DO NOT CHANGE THE FOLLOWING LINE
     def predict(self, x):
-    # DO NOT CHANGE THE PRECEDING LINE    
+        # DO NOT CHANGE THE PRECEDING LINE
         if not self.tree:
             return None
 
@@ -177,28 +180,27 @@ class DecisionTree:
         # Start with the root as the "current" node
         # As long as the current node is an interior node (type == "split"):
             while current_node["type"] == "split":
-        #    get the value of the attribute the split is performed on 
+                #    get the value of the attribute the split is performed on
                 attribute = current_node['column']
-        #    select the child corresponding to that value as the new current node 
+        #    select the child corresponding to that value as the new current node
                 x_attribute = instance[attribute]
 
                 if x_attribute in current_node["children"]:
                     current_node = current_node["children"][x_attribute]
 
-        # NOTE: In some cases, your tree may not have a child for a particular value 
-        #       In that case, return the majority value (self.majority) from the training set 
+        # NOTE: In some cases, your tree may not have a child for a particular value
+        #       In that case, return the majority value (self.majority) from the training set
                 else:
                     current_node = {"type": "class", "class": self.majority}
-        
-        # IMPORTANT: You have to perform this classification *for each* element in x 
+
+        # IMPORTANT: You have to perform this classification *for each* element in x
             predicted_labels.append(current_node["class"])
         # placeholder return value
         # Note that the result is a list of predictions, one for each x-value
         return predicted_labels
-    
+
     # DO NOT CHANGE THE FOLLOWING LINE
     def to_dict(self):
-    # DO NOT CHANGE THE PRECEDING LINE
+        # DO NOT CHANGE THE PRECEDING LINE
         # change this if you store the tree in a different format
         return self.tree
-       
